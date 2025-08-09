@@ -1,0 +1,155 @@
+# Meeting Transcript
+## Emergency Product Launch Review Meeting
+
+**Date:** August 8, 2025  
+**Time:** 9:00 AM - 10:15 AM PST  
+**Location:** Virtual Meeting - Zoom  
+**Meeting ID:** EM-2025-0808-CRITICAL  
+**Meeting Type:** Emergency Session  
+
+### Attendees
+**Present:**
+- Alex Kumar (AK) - CEO
+- Rachel Foster (RF) - Chief Product Officer, Meeting Chair
+- James Liu (JL) - VP of Engineering
+- Maria Gonzalez (MG) - Customer Success Director
+- Tom Bradley (TB) - Head of Quality Assurance
+- Nina Patel (NP) - PR & Communications Lead
+- Derek Wilson (DW) - Legal Counsel
+
+**Joined Late:**
+- Sophie Martin (SM) - Data Analytics Manager (joined 9:15 AM)
+
+---
+
+### Meeting Purpose
+Emergency response to critical bugs discovered in yesterday's ProductX 3.0 launch
+
+---
+
+### Meeting Minutes
+
+**[9:00 AM] Rachel Foster:** Thank you all for joining on short notice. We have a critical situation with yesterday's ProductX 3.0 launch. Tom, please brief everyone on what we've discovered.
+
+**[9:02 AM] Tom Bradley:** We've identified three critical issues since launch. First, users on Windows machines are experiencing crashes when importing files larger than 100MB. Second, the payment processing module is double-charging some customers. Third, the data export feature is corrupting CSV files. We've received 847 support tickets since midnight.
+
+**[9:04 AM] Alex Kumar:** This is unacceptable. How did these issues pass QA?
+
+**[9:05 AM] Tom Bradley:** The Windows issue only occurs with a specific combination of Windows 11 and certain antivirus software - this combination wasn't in our test matrix. The payment issue appears to be an edge case with international transactions. The CSV problem... that's on us. We missed it.
+
+**[9:07 AM] James Liu:** My team has been working through the night. We have patches ready for the CSV issue and the Windows crash. The payment bug is more complex - we need another 4-6 hours.
+
+**[9:09 AM] Maria Gonzalez:** Alex, we need to make a decision about whether to roll back the entire release. We're getting hammered on social media. Our NPS score has dropped 15 points overnight.
+
+**[9:11 AM] Alex Kumar:** What's our exposure on the payment issue?
+
+**[9:12 AM] Maria Gonzalez:** We've identified 43 customers who were double-charged, totaling approximately $12,000 in overcharges. My team is preparing refunds, but we need to act fast.
+
+**[9:14 AM] Derek Wilson:** From a legal standpoint, we need to notify affected customers within 24 hours of discovery. We should also consider offering compensation beyond just refunds to prevent any potential litigation.
+
+**[9:15 AM] Sophie Martin:** *[Joining late]* Sorry for the delay. I've been pulling data - we're seeing a 34% increase in churn risk signals from our enterprise customers.
+
+**[9:17 AM] Rachel Foster:** This changes things. Nina, what's our communication strategy?
+
+**[9:18 AM] Nina Patel:** I recommend full transparency. We should send an email to all users within the next hour acknowledging the issues, outlining our fix timeline, and offering compensation. I've drafted a press release, but I strongly suggest we fix at least two of the three issues before it goes out.
+
+**[9:20 AM] Alex Kumar:** James, if we implement the two ready patches now, what's the risk?
+
+**[9:22 AM] James Liu:** Minimal. We can hot-patch the CSV and Windows issues without taking the system down. Users will need to refresh their sessions, but that's it. The payment fix will require a 30-minute maintenance window.
+
+**[9:24 AM] Rachel Foster:** Let's do it. James, deploy the two patches immediately. Schedule the payment fix for 3 PM Pacific when usage is lowest.
+
+**[9:26 AM] Maria Gonzalez:** What about compensation? I propose we offer affected users a free month of service and a 25% discount on their next renewal.
+
+**[9:28 AM] Derek Wilson:** That's reasonable. For the double-charged customers, I recommend an additional 50% credit on top of the full refund.
+
+**[9:30 AM] Alex Kumar:** Approved. But I want a full post-mortem next week. This can't happen again.
+
+**[9:32 AM] Tom Bradley:** I'll lead the post-mortem. We're already documenting everything. Preliminary finding: our test coverage was only 76% for the payment module. We need to hit 95% minimum.
+
+**[9:34 AM] Rachel Foster:** Agreed. Let's talk immediate actions. Maria, how quickly can your team process the refunds?
+
+**[9:35 AM] Maria Gonzalez:** We'll have all refunds processed by noon today. I've pulled in extra staff from the sales team to help with customer outreach.
+
+**[9:37 AM] Nina Patel:** I need final approval on the customer communication. I'm sending it to everyone now... check your emails.
+
+**[9:39 AM] Alex Kumar:** *[After reviewing]* Good, but add a personal note from me at the beginning. Something like: "I personally apologize for the inconvenience. We fell short of our standards, and we're taking immediate action."
+
+**[9:41 AM] Nina Patel:** Will do. Sending in 30 minutes?
+
+**[9:42 AM] Rachel Foster:** Yes. James, status on the patches?
+
+**[9:43 AM] James Liu:** First patch is deployed. Windows crash fix going live in... deployed. Both patches are live. Early metrics show the issues are resolved.
+
+**[9:45 AM] Sophie Martin:** I'm seeing positive signals already. Support ticket velocity is decreasing.
+
+**[9:47 AM] Rachel Foster:** Good. Let's discuss the elephant in the room - do we delay the European launch scheduled for next week?
+
+**[9:49 AM] Alex Kumar:** What's everyone's thoughts?
+
+**[9:50 AM] Tom Bradley:** I strongly recommend a two-week delay. We need comprehensive testing with European payment providers.
+
+**[9:52 AM] Maria Gonzalez:** I agree. Better to delay than to have these issues repeat in a new market.
+
+**[9:54 AM] James Liu:** My team needs those two weeks anyway. We've been in crunch mode for a month.
+
+**[9:56 AM] Alex Kumar:** Decision made. Delay the European launch to August 25th. Nina, make sure our European partners are notified personally, not through a mass email.
+
+**[9:58 AM] Nina Patel:** I'll handle those calls personally this afternoon.
+
+**[10:00 AM] Rachel Foster:** Let's wrap up with assignments. Everyone clear on their immediate actions?
+
+---
+
+### Action Items - IMMEDIATE PRIORITY
+
+1. **James Liu** - Deploy payment processing fix by 3:00 PM PST today
+2. **Maria Gonzalez** - Complete all refunds by 12:00 PM PST today
+3. **Maria Gonzalez** - Contact all 43 double-charged customers personally by 2:00 PM PST
+4. **Nina Patel** - Send customer notification email by 9:30 AM PST
+5. **Nina Patel** - Call European partners about launch delay by 5:00 PM PST
+6. **Tom Bradley** - Deliver preliminary post-mortem report by August 12
+7. **Sophie Martin** - Monitor customer sentiment and provide hourly updates until 5:00 PM
+8. **Derek Wilson** - Prepare legal documentation for compensation offers by 11:00 AM PST
+9. **Rachel Foster** - Schedule all-hands meeting for Monday to discuss process improvements
+10. **Alex Kumar** - Record video apology for company blog by 12:00 PM PST
+
+---
+
+### Critical Decisions
+
+1. **Immediate deployment** of patches for Windows crash and CSV corruption issues
+2. **3:00 PM PST maintenance window** for payment processing fix
+3. **Compensation package approved:** Free month + 25% renewal discount for all affected users
+4. **Additional 50% credit** for double-charged customers on top of full refunds
+5. **European launch delayed** from August 15 to August 25, 2025
+6. **Full transparency approach** for public communications
+
+---
+
+### Follow-Up Actions
+
+- **Post-mortem meeting:** August 12, 2025, 2:00 PM PST
+- **All-hands meeting:** August 11, 2025, 10:00 AM PST
+- **Board notification:** Alex to call board members by noon today
+- **Customer Success check-ins:** Daily at 9:00 AM PST until situation stabilized
+
+---
+
+### Success Metrics to Monitor
+
+- Support ticket volume (Target: back to normal levels within 48 hours)
+- NPS score recovery (Target: recover 10 points within one week)
+- Churn rate (Target: no increase beyond normal monthly rate)
+- Social media sentiment (Target: neutral to positive by end of week)
+
+**[10:15 AM] Rachel Foster:** We have our plan. Execute quickly but carefully. We'll reconvene at 4:00 PM for a status update. Thank you everyone.
+
+**[10:15 AM] Alex Kumar:** One last thing - despite this setback, I want to recognize that everyone here dropped everything to fix this. That's the kind of team we are. Now let's show our customers why they chose us.
+
+---
+
+*Transcript prepared by: Rachel Foster*  
+*Date: August 8, 2025*  
+*Classification: Confidential - Internal Only*  
+*Distribution: Limited to attendees and senior leadership*
