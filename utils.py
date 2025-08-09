@@ -13,10 +13,9 @@ except Exception:
     pass
 
 try:
-    from google import genai
-    from google.genai import types
+    from google.genai import Client, types
 except Exception:
-    genai = None
+    Client = None
     types = None
 
 
@@ -52,67 +51,10 @@ def _debug_log(message: str):
     print(f"[DEBUG] {message}")
 
 
-def _offline_summarizer(notes: str) -> SummaryResult:
-    """Simple heuristic fallback when LLM fails."""
-    lines = [line.strip() for line in notes.split('\n') if line.strip()]
-    
-    # Extract attendees from speaker patterns
-    attendees = set()
-    speaker_patterns = [
-        r'^\[[0-9:]+\]\s*([A-Za-z\u00C0-\u017F]+)\s*:',  # "[10:30] John:"
-        r'^([A-Za-z\u00C0-\u017F]+)\s*:',  # "John:"
-        r'([A-Za-z\u00C0-\u017F]+):\s*',  # "Alice: "
-        r'([A-Za-z\u00C0-\u017F]+)\s+said',  # "Alice said"
-        r'([A-Za-z\u00C0-\u017F]+)\s+mentioned',  # "Bob mentioned"
-        r'([A-Za-z\u00C0-\u017F]+)\s+asked',  # "Carol asked"
-        r'([A-Za-z\u00C0-\u017F]+)\s+explaining',  # "Alice explaining"
-        r'([A-Za-z\u00C0-\u017F]+)\s+agreed',  # "Everyone agreed"
-    ]
-    
-    for line in lines:
-        for pattern in speaker_patterns:
-            matches = re.findall(pattern, line)
-            for match in matches:
-                if len(match) > 1 and match.isalpha():
-                    attendees.add(match.title())
-    
-    # Take first 2-3 sentences as summary
-    sentences = re.split(r'[.!?]', notes)
-    summary = ". ".join(sentences[:2]) if sentences else "Meeting discussion completed"
-    
-    # Extract action items heuristically
-    action_words = ['will', 'should', 'need to', 'plan to', 'going to', 'must', 'have to']
-    action_items = []
-    
-    for line in lines:
-        line_lower = line.lower()
-        if any(word in line_lower for word in action_words):
-            # Clean up and make it actionable
-            clean_line = line.strip('- •').strip()
-            # Remove speaker prefix if present
-            if ':' in clean_line[:30]:
-                clean_line = clean_line.split(':', 1)[1].strip()
-            
-            if len(clean_line) > 10:
-                # Make it start with a verb if it doesn't
-                if not any(clean_line.lower().startswith(verb) for verb in ['review', 'prepare', 'send', 'call', 'meet', 'create', 'draft', 'schedule']):
-                    clean_line = f"Follow up on {clean_line.lower()}"
-                action_items.append(clean_line)
-    
-    # Ensure exactly 3 items
-    while len(action_items) < 3:
-        action_items.append(f"Review meeting notes and follow up on item {len(action_items) + 1}")
-    
-    return SummaryResult(
-        summary=summary,
-        attendees=list(attendees)[:5] if attendees else ["Meeting participants"],
-        action_items=action_items[:3]
-    )
 
 
 def _extract_json_with_regex(text: str) -> Optional[dict]:
     """Try to extract JSON using regex patterns."""
-    # Look for JSON-like patterns with all three fields
     patterns = [
         r'\{[^{}]*"summary"[^{}]*"attendees"[^{}]*"action_items"[^{}]*\}',
         r'\{.*?"summary".*?"attendees".*?"action_items".*?\}',
@@ -126,7 +68,6 @@ def _extract_json_with_regex(text: str) -> Optional[dict]:
             except:
                 continue
     
-    # Try to build JSON from parts
     summary_match = re.search(r'"summary"\s*:\s*"([^"]*)"', text)
     attendees_match = re.search(r'"attendees"\s*:\s*\[(.*?)\]', text, re.DOTALL)
     items_match = re.search(r'"action_items"\s*:\s*\[(.*?)\]', text, re.DOTALL)
@@ -137,7 +78,6 @@ def _extract_json_with_regex(text: str) -> Optional[dict]:
             attendees_text = attendees_match.group(1)
             items_text = items_match.group(1)
             
-            # Extract quoted strings from the arrays
             attendees = re.findall(r'"([^"]*)"', attendees_text)
             items = re.findall(r'"([^"]*)"', items_text)
             
@@ -154,88 +94,59 @@ def _extract_json_with_regex(text: str) -> Optional[dict]:
 
 
 
-def call_llm(notes: str, model: str = "gemini-2.0-flash") -> SummaryResult:
+def call_llm(notes: str, model: str = "gemini-2.0-flash-exp") -> SummaryResult:
     """Calls Gemini to analyze transcript and return structured result."""
-    if genai is None or types is None:
-        _debug_log("google-genai not available, using offline fallback")
-        return _offline_summarizer(notes)
+    if Client is None or types is None:
+        raise RuntimeError("google-genai not available. Please install: pip install google-genai")
 
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        _debug_log("GEMINI_API_KEY not set, using offline fallback")
-        return _offline_summarizer(notes)
+        raise RuntimeError("GEMINI_API_KEY environment variable is not set")
+
+    client = Client(api_key=api_key)
+    prompt = TRANSCRIPT_PROMPT.format(notes=notes)
+
+    _debug_log(f"Analyzing transcript with LLM ('{model}')...")
+    
+    try:
+        response = client.models.generate_content(
+            model=model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.1,
+            )
+        )
+        
+        raw = response.text
+        _debug_log(f"LLM response: {repr(raw[:200])}")
+        
+    except Exception as e:
+        _debug_log(f"LLM call failed: {e}")
+        raise RuntimeError(f"LLM API call failed: {e}")
+
+    if not raw or len(raw.strip()) < 10:
+        raise RuntimeError("LLM returned empty response")
 
     try:
-        genai.configure(api_key=api_key)
-        prompt = TRANSCRIPT_PROMPT.format(notes=notes)
-
-        # Try non-streaming first
-        config = genai.GenerationConfig(
-            response_mime_type="application/json",
-            temperature=0.1,
-        )
-
-        _debug_log(f"Analyzing transcript with LLM ('{model}')...")
+        raw_clean = raw.strip()
+        if raw_clean.startswith('```json'):
+            raw_clean = raw_clean.replace('```json', '').replace('```', '').strip()
         
-        try:
-            # Non-streaming call
-            llm = genai.GenerativeModel(model_name=model)
-            response = llm.generate_content(
-                contents=[genai.types.Content(role="user", parts=[genai.types.Part.from_text(text=prompt)])],
-                generation_config=config,
-            )
-            
-            raw = response.text if hasattr(response, 'text') else str(response)
-            _debug_log(f"LLM response: {repr(raw[:200])}")
-            
-        except Exception as e:
-            _debug_log(f"Non-streaming failed: {e}, trying streaming...")
-            
-            # Fall back to streaming
-            chunks = []
-            llm = genai.GenerativeModel(model_name=model)
-            for chunk in llm.generate_content(
-                contents=[genai.types.Content(role="user", parts=[genai.types.Part.from_text(text=prompt)])],
-                generation_config=config,
-                stream=True,
-            ):
-                text = getattr(chunk, "text", "") or ""
-                if text:
-                    chunks.append(text)
-            raw = "".join(chunks)
-            _debug_log(f"Streaming response: {repr(raw[:200])}")
-
-        if not raw or len(raw.strip()) < 10:
-            _debug_log("Empty response, using offline fallback")
-            return _offline_summarizer(notes)
-
-        # Try direct JSON parsing
-        try:
-            raw_clean = raw.strip()
-            if raw_clean.startswith('```json'):
-                raw_clean = raw_clean.replace('```json', '').replace('```', '').strip()
-            
-            obj = json.loads(raw_clean)
-            _debug_log("Direct JSON parsing succeeded!")
-            return parse_transcript_json_obj(obj)
-            
-        except Exception as e:
-            _debug_log(f"Direct JSON parsing failed: {e}")
-
-        # Try regex extraction
-        _debug_log("Trying regex extraction...")
-        regex_result = _extract_json_with_regex(raw)
-        if regex_result:
-            _debug_log("Regex extraction succeeded!")
-            return parse_transcript_json_obj(regex_result)
-
-        # Final fallback
-        _debug_log("All parsing methods failed, using offline fallback")
-        return _offline_summarizer(notes)
-
+        obj = json.loads(raw_clean)
+        _debug_log("Direct JSON parsing succeeded!")
+        return parse_transcript_json_obj(obj)
+        
     except Exception as e:
-        _debug_log(f"LLM call completely failed: {e}, using offline fallback")
-        return _offline_summarizer(notes)
+        _debug_log(f"Direct JSON parsing failed: {e}")
+
+    _debug_log("Trying regex extraction...")
+    regex_result = _extract_json_with_regex(raw)
+    if regex_result:
+        _debug_log("Regex extraction succeeded!")
+        return parse_transcript_json_obj(regex_result)
+
+    raise RuntimeError("Failed to parse LLM response into valid JSON")
 
 
 def parse_transcript_json_obj(obj: dict) -> SummaryResult:
