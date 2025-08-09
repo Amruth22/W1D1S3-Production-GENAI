@@ -203,7 +203,7 @@ Run our comprehensive test suite:
 
 ```bash
 # Run all tests with verbose output
-python -m unittest test_core_pipeline.py -v
+python -m unittest unit_test.py -v
 ```
 
 ### 🎯 Test Coverage
@@ -279,7 +279,7 @@ Track your system's performance:
 │   └── Meeting Transcript.txt
 ├── 🐍 worker.py            # Main processing engine
 ├── 🔧 utils.py             # AI integration & helpers
-├── 🧪 test_core_pipeline.py # Test suite
+├── 🧪 unit_test.py # Test suite
 ├── 📦 requirements.txt     # Dependencies
 └── 📖 README.md           # This guide
 ```
@@ -415,7 +415,7 @@ pip install -r requirements.txt
 pip install pytest black flake8
 
 # Run tests
-python -m unittest test_core_pipeline.py -v
+python -m unittest unit_test.py -v
 
 # Format code
 black *.py
