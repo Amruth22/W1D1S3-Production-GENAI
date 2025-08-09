@@ -3,6 +3,7 @@ import time
 import uuid
 import json
 from pathlib import Path
+from typing import Optional
 
 from utils import (
     ensure_runtime_dirs,
@@ -17,7 +18,7 @@ LOG_FILE = "logs/metrics.csv"
 POLL_INTERVAL = 2.0  # seconds
 
 
-def claim_next_file() -> Path | None:
+def claim_next_file() -> Optional[Path]:
     # List .txt files and claim one by renaming to .processing to avoid double-processing
     files = sorted([p for p in INPUT_DIR.glob("*.txt") if p.is_file()])
     for p in files:
